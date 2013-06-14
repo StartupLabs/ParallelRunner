@@ -127,6 +127,10 @@ class ParallelRunnerCommand extends BehatCommand
             // Dismiss finished processes.
             foreach ($this->processes as $i => $process) {
                 if (!$this->processes[$i]->isRunning()) {
+                    /** @var $process Process */
+                    $process = $this->processes[$i];
+                    echo $process->getOutput();
+                    echo $process->getErrorOutput();
                     unset($this->processes[$i]);
                 }
             }
