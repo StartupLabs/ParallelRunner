@@ -112,6 +112,8 @@ class ParallelRunnerCommand extends BehatCommand
         // catch app interruption
         $this->registerParentSignal();
 
+        $this->getContainer()->get('behat.hook.dispatcher')->setDryRun();
+
         // Print test results while workers do the testing job.
         while (count($this->processes) > 0) {
             sleep(1);
