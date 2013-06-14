@@ -7,13 +7,19 @@
 namespace shvetsgroup\ParallelRunner\Console\Command;
 
 use Behat\Behat\Console\Command\BehatCommand,
-  Behat\Behat\Event\SuiteEvent;
+  Behat\Behat\Event\SuiteEvent,
+  Behat\Behat\Event\StepEvent,
+  Behat\Behat\Event\ScenarioEvent,
+  Behat\Behat\Event\OutlineExampleEvent;
 
 use Symfony\Component\DependencyInjection\ContainerInterface,
   Symfony\Component\Console\Input\InputOption,
   Symfony\Component\Console\Input\InputInterface,
   Symfony\Component\Console\Output\OutputInterface,
   Symfony\Component\Process\Process;
+
+use \shvetsgroup\ParallelRunner\Context\NullContext,
+  \shvetsgroup\ParallelRunner\EventDispatcher\NullEventDispatcher;
 
 
 /**
@@ -172,7 +178,46 @@ class ParallelRunnerCommand extends BehatCommand
                           '_',
                           $feature->getFile()
                       );
-                    file_put_contents($output_file, serialize($eventService->getEvents()));
+
+                    $events = array();
+                    foreach ($eventService->getEvents() as $event) {
+                        if ($event[1] instanceof StepEvent) {
+                            $event[1] = new StepEvent(
+                                $event[1]->getStep(),
+                                $event[1]->getLogicalParent(),
+                                new NullContext(),
+                                $event[1]->getResult(),
+                                $event[1]->getDefinition(),
+                                $event[1]->getException() ? new \Exception($event[1]->getException()->getMessage()) : null,
+                                $event[1]->getSnippet()
+                            );
+                        }
+
+                        if ($event[1] instanceof OutlineExampleEvent) {
+                            $event[1] = new OutlineExampleEvent(
+                                $event[1]->getOutline(),
+                                $event[1]->getIteration(),
+                                new NullContext(),
+                                $event[1]->getResult(),
+                                $event[1]->isSkipped()
+                            );
+                        }
+
+                        if ($event[1] instanceof ScenarioEvent) {
+                            $event[1] = new ScenarioEvent(
+                                $event[1]->getScenario(),
+                                new NullContext(),
+                                $event[1]->getResult(),
+                                $event[1]->isSkipped()
+                            );
+                        }
+
+                        $event[1]->setDispatcher(new NullEventDispatcher());
+
+                        $events[] = $event;
+                    }
+
+                    file_put_contents($output_file, serialize($events));
                     $eventService->flushEvents();
                 }
                 $feature_count++;
