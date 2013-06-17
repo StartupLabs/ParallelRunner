@@ -6,6 +6,7 @@
 
 namespace shvetsgroup\ParallelRunner\Service;
 
+use shvetsgroup\ParallelRunner\Context\NullContext;
 use Symfony\Component\EventDispatcher\EventDispatcher,
   Symfony\Component\DependencyInjection\ContainerInterface,
   Symfony\Component\Serializer\Serializer,
@@ -98,7 +99,15 @@ class EventService
 
         foreach ($events as $eventInfo) {
             list($name, $event_class, $event_json) = $eventInfo;
-            $event = $serializer->deserialize($event_json, $event_class, 'json', array('container' => $this->getContainer()));
+            $event = $serializer->deserialize(
+                $event_json,
+                $event_class,
+                'json',
+                array(
+                    'container' => $this->getContainer(),
+                    'context' => new NullContext()
+                )
+            );
             $event->replay = true;
 
             switch ($name) {

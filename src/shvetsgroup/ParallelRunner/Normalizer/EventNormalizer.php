@@ -88,7 +88,7 @@ class EventNormalizer extends GetSetMethodNormalizer implements NormalizerInterf
             $data['dispatcher'] = $container->get('behat.event_dispatcher');
         }
         if (isset($data['context'])) {
-            $data['context'] = $container->get('behat.context.dispatcher')->createContext();
+            $data['context'] = $context['context'];
         }
         if (isset($data['feature'])) {
             $features = $gherkin->load($data['feature']);
